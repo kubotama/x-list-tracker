@@ -1,9 +1,16 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 const App = () => {
+  const [dateTime, setDateTime] = useState('')
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   const handleOpen = () => {
+    setDateTime(
+      Temporal.Now.plainDateTimeISO().toString({
+        smallestUnit: 'minute',
+      }),
+    )
+
     dialogRef.current?.showModal()
   }
 
@@ -43,6 +50,14 @@ const App = () => {
         }}
       >
         <p>日時の入力</p>
+
+        <label htmlFor="date-time">日時</label>
+        <input
+          id="date-time"
+          type="datetime-local"
+          value={dateTime}
+          onChange={(event) => setDateTime(event.target.value)}
+        />
         <button type="button" onClick={handleClose}>
           閉じる
         </button>
