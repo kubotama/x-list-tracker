@@ -1,14 +1,25 @@
 import { useRef, useState } from 'react'
 
+const formatDateTime = (value: string) =>
+  Temporal.PlainDateTime.from(value).toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
 const App = () => {
   const [dateTime, setDateTime] = useState('')
+  const [confirmedDateTime, setConfirmedDateTime] = useState('')
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   const handleOpen = () => {
     setDateTime(
-      Temporal.Now.plainDateTimeISO().toString({
-        smallestUnit: 'minute',
-      }),
+      confirmedDateTime ||
+        Temporal.Now.plainDateTimeISO().toString({
+          smallestUnit: 'minute',
+        }),
     )
 
     dialogRef.current?.showModal()
@@ -16,6 +27,11 @@ const App = () => {
 
   const handleClose = () => {
     dialogRef.current?.close()
+  }
+
+  const handleConfirm = () => {
+    setConfirmedDateTime(dateTime)
+    handleClose()
   }
 
   return (
@@ -37,7 +53,9 @@ const App = () => {
           }}
         >
           <div>フォロー中</div>
-          <div>未記録</div>
+          <div>
+            {confirmedDateTime ? formatDateTime(confirmedDateTime) : '未記録'}
+          </div>
         </button>
       </main>
 
@@ -58,8 +76,8 @@ const App = () => {
           value={dateTime}
           onChange={(event) => setDateTime(event.target.value)}
         />
-        <button type="button" onClick={handleClose}>
-          閉じる
+        <button type="button" onClick={handleConfirm} disabled={!dateTime}>
+          確定
         </button>
       </dialog>
     </>
