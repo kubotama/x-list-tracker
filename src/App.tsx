@@ -1,4 +1,4 @@
-import { useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 
 type Tab = {
   id: string
@@ -6,11 +6,18 @@ type Tab = {
   lastReadAt: string | null // 'YYYY-MM-DDTHH:mm'、未記録は null
 }
 
+type StoredData = {
+  version: 1
+  tabs: Tab[]
+}
+
 type TabsAction =
   | { type: 'add'; id: string; name: string }
   | { type: 'setLastReadAt'; id: string; value: string }
 
 const MAX_TAB_NAME_LENGTH = 32
+const STORAGE_KEY = 'x-list-tracker'
+const STORAGE_VERSION = 1
 
 const initialTabs: Tab[] = [
   { id: 'following', name: 'フォロー中', lastReadAt: null },
@@ -36,6 +43,69 @@ const isValidTabName = (name: string) => {
   return normalized.length > 0 && normalized.length <= MAX_TAB_NAME_LENGTH
 }
 
+const isValidDateTime = (value: string) => {
+  try {
+    Temporal.PlainDateTime.from(value)
+    return true
+  } catch {
+    return false
+  }
+}
+
+const isTab = (value: unknown): value is Tab => {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  const { id, name, lastReadAt } = value as Record<string, unknown>
+  return (
+    typeof id === 'string' &&
+    typeof name === 'string' &&
+    (lastReadAt === null ||
+      (typeof lastReadAt === 'string' && isValidDateTime(lastReadAt)))
+  )
+}
+
+// 保存された文字列から tabs を取り出す。不正な場合は null を返す
+const parseStoredTabs = (json: string | null): Tab[] | null => {
+  if (json === null) {
+    return null
+  }
+  try {
+    const data: unknown = JSON.parse(json)
+    if (typeof data !== 'object' || data === null) {
+      return null
+    }
+    const { version, tabs } = data as Record<string, unknown>
+    if (version !== STORAGE_VERSION || !Array.isArray(tabs)) {
+      return null
+    }
+    const parsed: unknown[] = tabs
+    if (parsed.length === 0 || !parsed.every(isTab)) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const loadTabs = (): Tab[] => {
+  try {
+    return parseStoredTabs(localStorage.getItem(STORAGE_KEY)) ?? initialTabs
+  } catch {
+    return initialTabs
+  }
+}
+
+const saveTabs = (tabs: Tab[]) => {
+  try {
+    const data: StoredData = { version: STORAGE_VERSION, tabs }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch {
+    // 保存に失敗しても、アプリは動作を続ける
+  }
+}
+
 const formatDateTime = (value: string) =>
   Temporal.PlainDateTime.from(value).toLocaleString('ja-JP', {
     year: 'numeric',
@@ -46,12 +116,16 @@ const formatDateTime = (value: string) =>
   })
 
 const App = () => {
-  const [tabs, dispatch] = useReducer(tabsReducer, initialTabs)
+  const [tabs, dispatch] = useReducer(tabsReducer, null, loadTabs)
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [dateTime, setDateTime] = useState('')
   const [tabName, setTabName] = useState('')
   const dialogRef = useRef<HTMLDialogElement>(null)
   const addDialogRef = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    saveTabs(tabs)
+  }, [tabs])
 
   const handleOpen = (tab: Tab) => {
     setEditingTabId(tab.id)
