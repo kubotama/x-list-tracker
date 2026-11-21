@@ -10,8 +10,7 @@
     "preview": "npm run build && vite preview",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "cf-typegen": "wrangler types"
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "react": "^19.3.1",
