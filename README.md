@@ -57,3 +57,19 @@ Prettierによるフォーマットチェックを実行します。
 ```bash
 npm run format:check
 ```
+
+## デプロイ
+
+Cloudflare Workers の static assets としてデプロイします。初回のみ、Wrangler で Cloudflare にログインします。
+
+```bash
+npx wrangler login
+```
+
+ビルドとデプロイを実行します。
+
+```bash
+npm run deploy
+```
+
+タブと日時はブラウザの localStorage に保存されるため、デプロイ先の URL が変わると、保存したデータは引き継がれません。
