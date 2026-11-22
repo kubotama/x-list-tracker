@@ -7,14 +7,13 @@ export const isValidDateTime = (value: string) => {
   }
 }
 
-export const formatDateTime = (value: string) =>
-  Temporal.PlainDateTime.from(value).toLocaleString('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+const pad = (n: number) => String(n).padStart(2, '0')
+
+export const formatDateTime = (value: string) => {
+  const { year, month, day, hour, minute } = Temporal.PlainDateTime.from(value)
+
+  return `${year}/${pad(month)}/${pad(day)} ${pad(hour)}:${pad(minute)}`
+}
 
 // 経過時間（分）を、表示用の文字列に変換する。0分以下（未来の日時を含む）は「たった今」
 export const formatElapsed = (minutes: number) => {
