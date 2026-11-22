@@ -58,6 +58,20 @@ Prettierによるフォーマットチェックを実行します。
 npm run format:check
 ```
 
+## テスト
+
+Vitest によるテストを実行します。
+
+```bash
+npm test
+```
+
+変更を監視しながら実行する場合は、次のコマンドを使います。
+
+```bash
+npm run test:watch
+```
+
 ## デプロイ
 
 Cloudflare Workers の static assets としてデプロイします。初回のみ、Wrangler で Cloudflare にログインします。
