@@ -127,13 +127,12 @@ const App = () => {
     saveTabs(tabs)
   }, [tabs])
 
-  const handleOpen = (tab: Tab) => {
-    setEditingTabId(tab.id)
+  const handleOpen = (tabId: string) => {
+    setEditingTabId(tabId)
     setDateTime(
-      tab.lastReadAt ??
-        Temporal.Now.plainDateTimeISO().toString({
-          smallestUnit: 'minute',
-        }),
+      Temporal.Now.plainDateTimeISO().toString({
+        smallestUnit: 'minute',
+      }),
     )
 
     dialogRef.current?.showModal()
@@ -178,7 +177,7 @@ const App = () => {
           <button
             key={tab.id}
             type="button"
-            onClick={() => handleOpen(tab)}
+            onClick={() => handleOpen(tab.id)}
             style={{
               display: 'block',
               width: '100%',
