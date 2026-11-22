@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 
 type Tab = {
   id: string
@@ -18,6 +18,7 @@ type TabsAction =
 const MAX_TAB_NAME_LENGTH = 32
 const STORAGE_KEY = 'x-list-tracker'
 const STORAGE_VERSION = 1
+const UPDATE_INTERVAL_MS = 60_000
 
 const initialTabs: Tab[] = [
   { id: 'following', name: 'フォロー中', lastReadAt: null },
@@ -115,8 +116,60 @@ const formatDateTime = (value: string) =>
     minute: '2-digit',
   })
 
+// 経過時間（分）を、表示用の文字列に変換する。0分以下（未来の日時を含む）は「たった今」
+const formatElapsed = (minutes: number) => {
+  if (minutes < 1) {
+    return 'たった今'
+  }
+  if (minutes < 60) {
+    return `${minutes}分前`
+  }
+  if (minutes < 24 * 60) {
+    return `${Math.floor(minutes / 60)}時間前`
+  }
+  return `${Math.floor(minutes / (24 * 60))}日前`
+}
+
+// 最後に読んだ日時から現在までの経過時間（分）を求める
+const getElapsedMinutes = (lastReadAt: string, now: Temporal.PlainDateTime) =>
+  Temporal.PlainDateTime.from(lastReadAt).until(now, {
+    largestUnit: 'minute',
+  }).minutes
+
+// 例: 2026/11/17 12:50（3分前）
+const formatLastRead = (lastReadAt: string, now: Temporal.PlainDateTime) =>
+  `${formatDateTime(lastReadAt)}（${formatElapsed(getElapsedMinutes(lastReadAt, now))}）`
+
+// 現在時刻を保持し、一定間隔と、画面が再び表示されたときに更新する
+const useNow = () => {
+  const [now, setNow] = useState(() => Temporal.Now.plainDateTimeISO())
+
+  const refreshNow = useCallback(() => {
+    setNow(Temporal.Now.plainDateTimeISO())
+  }, [])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshNow()
+      }
+    }
+
+    const intervalId = setInterval(refreshNow, UPDATE_INTERVAL_MS)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refreshNow])
+
+  return [now, refreshNow] as const
+}
+
 const App = () => {
   const [tabs, dispatch] = useReducer(tabsReducer, null, loadTabs)
+  const [now, refreshNow] = useNow()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [dateTime, setDateTime] = useState('')
   const [tabName, setTabName] = useState('')
@@ -145,6 +198,7 @@ const App = () => {
   const handleConfirm = () => {
     if (editingTabId !== null) {
       dispatch({ type: 'setLastReadAt', id: editingTabId, value: dateTime })
+      refreshNow()
     }
     handleClose()
   }
@@ -192,7 +246,7 @@ const App = () => {
           >
             <div>{tab.name}</div>
             <div>
-              {tab.lastReadAt ? formatDateTime(tab.lastReadAt) : '未記録'}
+              {tab.lastReadAt ? formatLastRead(tab.lastReadAt, now) : '未記録'}
             </div>
           </button>
         ))}
