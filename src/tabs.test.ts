@@ -110,4 +110,37 @@ describe('tabsReducer', () => {
       expect(tabs).toEqual(before)
     })
   })
+
+  describe('rename', () => {
+    it('対象のタブの名前だけを更新し、日時は変えない', () => {
+      const result = tabsReducer(tabs, {
+        type: 'rename',
+        id: 'b',
+        name: 'B2',
+      })
+
+      expect(result).toEqual([
+        { id: 'a', name: 'A', lastReadAt: null },
+        { id: 'b', name: 'B2', lastReadAt: '2026-11-17T12:50' },
+      ])
+    })
+
+    it('存在しない id では、内容が変わらない', () => {
+      const result = tabsReducer(tabs, {
+        type: 'rename',
+        id: 'unknown',
+        name: 'X',
+      })
+
+      expect(result).toEqual(tabs)
+    })
+
+    it('元の配列を変更しない', () => {
+      const before = structuredClone(tabs)
+
+      tabsReducer(tabs, { type: 'rename', id: 'a', name: 'A2' })
+
+      expect(tabs).toEqual(before)
+    })
+  })
 })
