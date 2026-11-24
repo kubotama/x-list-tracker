@@ -5,6 +5,7 @@ import {
   MAX_TAB_NAME_LENGTH,
   normalizeTabName,
   tabsReducer,
+  type Tab,
 } from './tabs'
 import { formatLastRead } from './time'
 
@@ -41,6 +42,7 @@ const App = () => {
   const [tabs, dispatch] = useReducer(tabsReducer, null, loadTabs)
   const [now, refreshNow] = useNow()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
+  const [editingTabName, setEditingTabName] = useState('')
   const [dateTime, setDateTime] = useState('')
   const [tabName, setTabName] = useState('')
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -50,8 +52,15 @@ const App = () => {
     saveTabs(tabs)
   }, [tabs])
 
-  const handleOpen = (tabId: string) => {
-    setEditingTabId(tabId)
+  const editingTab = tabs.find((tab) => tab.id === editingTabId)
+  const isEditingTabNameValid = isValidTabName(editingTabName)
+  const isEditingTabNameChanged =
+    editingTab !== undefined &&
+    normalizeTabName(editingTabName) !== editingTab.name
+
+  const handleOpen = (tab: Tab) => {
+    setEditingTabId(tab.id)
+    setEditingTabName(tab.name)
     setDateTime(
       Temporal.Now.plainDateTimeISO().toString({
         smallestUnit: 'minute',
@@ -65,11 +74,37 @@ const App = () => {
     dialogRef.current?.close()
   }
 
+  // 日時と、変更されていればタブ名を、あわせて反映する
   const handleConfirm = () => {
-    if (editingTabId !== null) {
-      dispatch({ type: 'setLastReadAt', id: editingTabId, value: dateTime })
-      refreshNow()
+    if (editingTabId === null || !isEditingTabNameValid) {
+      return
     }
+    dispatch({ type: 'setLastReadAt', id: editingTabId, value: dateTime })
+    if (isEditingTabNameChanged) {
+      dispatch({
+        type: 'rename',
+        id: editingTabId,
+        name: normalizeTabName(editingTabName),
+      })
+    }
+    refreshNow()
+    handleClose()
+  }
+
+  // 日時は変更せず、タブ名のみを反映する
+  const handleRename = () => {
+    if (
+      editingTabId === null ||
+      !isEditingTabNameValid ||
+      !isEditingTabNameChanged
+    ) {
+      return
+    }
+    dispatch({
+      type: 'rename',
+      id: editingTabId,
+      name: normalizeTabName(editingTabName),
+    })
     handleClose()
   }
 
@@ -101,7 +136,7 @@ const App = () => {
           <button
             key={tab.id}
             type="button"
-            onClick={() => handleOpen(tab.id)}
+            onClick={() => handleOpen(tab)}
             style={{
               display: 'block',
               width: '100%',
@@ -134,17 +169,42 @@ const App = () => {
           }
         }}
       >
-        <p>日時の入力</p>
+        <p>タブの編集</p>
 
-        <label htmlFor="date-time">日時</label>
-        <input
-          id="date-time"
-          type="datetime-local"
-          value={dateTime}
-          onChange={(event) => setDateTime(event.target.value)}
-        />
-        <button type="button" onClick={handleConfirm} disabled={!dateTime}>
+        <div>
+          <label htmlFor="date-time">日時</label>
+          <input
+            id="date-time"
+            type="datetime-local"
+            value={dateTime}
+            onChange={(event) => setDateTime(event.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="edit-tab-name">名前</label>
+          <input
+            id="edit-tab-name"
+            type="text"
+            maxLength={MAX_TAB_NAME_LENGTH}
+            value={editingTabName}
+            onChange={(event) => setEditingTabName(event.target.value)}
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleConfirm}
+          disabled={!dateTime || !isEditingTabNameValid}
+        >
           確定
+        </button>
+        <button
+          type="button"
+          onClick={handleRename}
+          disabled={!isEditingTabNameValid || !isEditingTabNameChanged}
+        >
+          名前のみ変更
         </button>
       </dialog>
 

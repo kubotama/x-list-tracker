@@ -6,6 +6,7 @@ export type Tab = {
 
 export type TabsAction =
   | { type: 'add'; id: string; name: string }
+  | { type: 'rename'; id: string; name: string }
   | { type: 'setLastReadAt'; id: string; value: string }
 
 export const MAX_TAB_NAME_LENGTH = 32
@@ -18,6 +19,10 @@ export const tabsReducer = (tabs: Tab[], action: TabsAction): Tab[] => {
   switch (action.type) {
     case 'add':
       return [...tabs, { id: action.id, name: action.name, lastReadAt: null }]
+    case 'rename':
+      return tabs.map((tab) =>
+        tab.id === action.id ? { ...tab, name: action.name } : tab,
+      )
     case 'setLastReadAt':
       return tabs.map((tab) =>
         tab.id === action.id ? { ...tab, lastReadAt: action.value } : tab,
