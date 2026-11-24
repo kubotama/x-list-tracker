@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  FOLLOWING_TAB_ID,
+  isDeletableTab,
   isValidTabName,
   MAX_TAB_NAME_LENGTH,
   normalizeTabName,
@@ -45,6 +47,16 @@ describe('isValidTabName', () => {
 
   it('前後の空白は、取り除いた長さで判定する', () => {
     expect(isValidTabName(` ${'a'.repeat(MAX_TAB_NAME_LENGTH)} `)).toBe(true)
+  })
+})
+
+describe('isDeletableTab', () => {
+  it('初期タブの id は削除できない', () => {
+    expect(isDeletableTab(FOLLOWING_TAB_ID)).toBe(false)
+  })
+
+  it('初期タブ以外の id は削除できる', () => {
+    expect(isDeletableTab('a')).toBe(true)
   })
 })
 
@@ -139,6 +151,47 @@ describe('tabsReducer', () => {
       const before = structuredClone(tabs)
 
       tabsReducer(tabs, { type: 'rename', id: 'a', name: 'A2' })
+
+      expect(tabs).toEqual(before)
+    })
+  })
+
+  describe('remove', () => {
+    it('対象のタブだけを削除し、残りの順序を保つ', () => {
+      const three: Tab[] = [...tabs, { id: 'c', name: 'C', lastReadAt: null }]
+
+      const result = tabsReducer(three, { type: 'remove', id: 'b' })
+
+      expect(result).toEqual([
+        { id: 'a', name: 'A', lastReadAt: null },
+        { id: 'c', name: 'C', lastReadAt: null },
+      ])
+    })
+
+    it('存在しない id では、内容が変わらない', () => {
+      const result = tabsReducer(tabs, { type: 'remove', id: 'unknown' })
+
+      expect(result).toEqual(tabs)
+    })
+
+    it('初期タブは削除されない', () => {
+      const withFollowing: Tab[] = [
+        { id: FOLLOWING_TAB_ID, name: 'フォロー中', lastReadAt: null },
+        ...tabs,
+      ]
+
+      const result = tabsReducer(withFollowing, {
+        type: 'remove',
+        id: FOLLOWING_TAB_ID,
+      })
+
+      expect(result).toEqual(withFollowing)
+    })
+
+    it('元の配列を変更しない', () => {
+      const before = structuredClone(tabs)
+
+      tabsReducer(tabs, { type: 'remove', id: 'a' })
 
       expect(tabs).toEqual(before)
     })
