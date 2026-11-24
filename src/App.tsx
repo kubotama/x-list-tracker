@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { loadTabs, saveTabs } from './storage'
 import {
+  isDeletableTab,
   isValidTabName,
   MAX_TAB_NAME_LENGTH,
   normalizeTabName,
@@ -57,6 +58,8 @@ const App = () => {
   const isEditingTabNameChanged =
     editingTab !== undefined &&
     normalizeTabName(editingTabName) !== editingTab.name
+  const canDeleteEditingTab =
+    editingTab !== undefined && isDeletableTab(editingTab.id)
 
   const handleOpen = (tab: Tab) => {
     setEditingTabId(tab.id)
@@ -105,6 +108,19 @@ const App = () => {
       id: editingTabId,
       name: normalizeTabName(editingTabName),
     })
+    handleClose()
+  }
+
+  // 確認のうえ、タブを削除する
+  const handleDelete = () => {
+    if (editingTab === undefined || !canDeleteEditingTab) {
+      return
+    }
+    const message = `「${editingTab.name}」を削除しますか？この操作は取り消せません。`
+    if (!window.confirm(message)) {
+      return
+    }
+    dispatch({ type: 'remove', id: editingTab.id })
     handleClose()
   }
 
@@ -206,6 +222,16 @@ const App = () => {
         >
           名前のみ変更
         </button>
+
+        <div style={{ marginTop: '32px' }}>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={!canDeleteEditingTab}
+          >
+            タブを削除
+          </button>
+        </div>
       </dialog>
 
       <dialog
