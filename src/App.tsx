@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { Modal } from './Modal'
 import { formatDateTime, formatElapsed, getElapsedMinutes } from './time'
 import { loadTabs, saveTabs } from './storage'
 import {
@@ -185,14 +186,8 @@ const App = () => {
           タブを追加
         </button>
       </main>
-      <dialog
-        ref={dialogRef}
-        onClick={(event) => {
-          if (event.target === dialogRef.current) {
-            handleClose()
-          }
-        }}
-      >
+
+      <Modal ref={dialogRef}>
         <p>タブの編集</p>
 
         <div>
@@ -240,16 +235,9 @@ const App = () => {
             タブを削除
           </button>
         </div>
-      </dialog>
+      </Modal>
 
-      <dialog
-        ref={addDialogRef}
-        onClick={(event) => {
-          if (event.target === addDialogRef.current) {
-            handleCloseAdd()
-          }
-        }}
-      >
+      <Modal ref={addDialogRef}>
         <p>タブの追加</p>
 
         <label htmlFor="tab-name">名前</label>
@@ -267,7 +255,7 @@ const App = () => {
         >
           追加
         </button>
-      </dialog>
+      </Modal>
     </>
   )
 }
