@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { formatDateTime, formatElapsed, getElapsedMinutes } from './time'
 import { loadTabs, saveTabs } from './storage'
 import {
   isDeletableTab,
@@ -8,7 +9,6 @@ import {
   tabsReducer,
   type Tab,
 } from './tabs'
-import { formatLastRead } from './time'
 
 const UPDATE_INTERVAL_MS = 60_000
 
@@ -147,36 +147,44 @@ const App = () => {
 
   return (
     <>
-      <main>
+      <main className="tab-list">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
+            className="tab-item"
             onClick={() => handleOpen(tab)}
-            style={{
-              display: 'block',
-              width: '100%',
-              padding: '16px',
-              border: '1px solid blue',
-              background: 'transparent',
-              color: 'inherit',
-              textAlign: 'left',
-              font: 'inherit',
-              cursor: 'pointer',
-            }}
           >
-            <div>{tab.name}</div>
-            <div>
-              {tab.lastReadAt ? formatLastRead(tab.lastReadAt, now) : '未記録'}
-            </div>
+            <span className="tab-item-inner">
+              <span className="tab-item-header">
+                <span className="tab-item-name">{tab.name}</span>
+                {tab.lastReadAt && (
+                  <span className="tab-item-elapsed">
+                    {formatElapsed(getElapsedMinutes(tab.lastReadAt, now))}
+                  </span>
+                )}
+              </span>
+              <span
+                className={
+                  tab.lastReadAt
+                    ? 'tab-item-datetime'
+                    : 'tab-item-datetime tab-item-datetime-empty'
+                }
+              >
+                {tab.lastReadAt ? formatDateTime(tab.lastReadAt) : '未記録'}
+              </span>
+            </span>
           </button>
         ))}
 
-        <button type="button" onClick={handleOpenAdd}>
+        <button
+          type="button"
+          className="add-tab-button"
+          onClick={handleOpenAdd}
+        >
           タブを追加
         </button>
       </main>
-
       <dialog
         ref={dialogRef}
         onClick={(event) => {

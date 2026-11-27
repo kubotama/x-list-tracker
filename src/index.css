@@ -1,0 +1,108 @@
+:root {
+  --color-text: #1a1a1a;
+  --color-text-muted: #666;
+  --color-border: #2563eb;
+  --color-surface: #fff;
+  --space-page: 16px;
+  --space-item-x: 16px;
+  --space-item-y: 12px;
+  --radius: 8px;
+
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+button {
+  font: inherit;
+}
+
+.tab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-page);
+}
+
+.tab-item {
+  display: block;
+  width: 100%;
+  padding: var(--space-item-y) var(--space-item-x);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 日時の文字サイズを、タブの内側の幅に合わせるためのコンテナ */
+.tab-item-inner {
+  display: block;
+  container-type: inline-size;
+}
+
+.tab-item-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tab-item-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 1.25rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-item-elapsed {
+  flex: none;
+  font-size: 1.25rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tab-item-datetime {
+  display: block;
+  margin-top: 4px;
+  font-size: min(10cqw, 3rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.tab-item-datetime-empty {
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.add-tab-button {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--space-item-x);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-border);
+  cursor: pointer;
+}

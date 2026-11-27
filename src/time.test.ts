@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   formatDateTime,
   formatElapsed,
-  formatLastRead,
   getElapsedMinutes,
   isValidDateTime,
 } from './time'
@@ -81,31 +80,5 @@ describe('getElapsedMinutes', () => {
 
   it('未来の日時は負の値になる', () => {
     expect(getElapsedMinutes('2026-11-17T13:00', now)).toBe(-5)
-  })
-})
-
-describe('formatLastRead', () => {
-  it('日時（経過時間）の形式になる', () => {
-    const now = Temporal.PlainDateTime.from('2026-11-17T12:53')
-
-    expect(formatLastRead('2026-11-17T12:50', now)).toBe(
-      '2026/11/17 12:50（3分前）',
-    )
-  })
-
-  it('経過時間が0分のときは、たった今と表示する', () => {
-    const now = Temporal.PlainDateTime.from('2026-11-17T12:50')
-
-    expect(formatLastRead('2026-11-17T12:50', now)).toBe(
-      '2026/11/17 12:50（たった今）',
-    )
-  })
-
-  it('日単位の経過時間も表示する', () => {
-    const now = Temporal.PlainDateTime.from('2026-11-17T12:55')
-
-    expect(formatLastRead('2026-11-14T12:50', now)).toBe(
-      '2026/11/14 12:50（3日前）',
-    )
   })
 })

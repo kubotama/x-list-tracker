@@ -37,10 +37,3 @@ export const getElapsedMinutes = (
   Temporal.PlainDateTime.from(lastReadAt).until(now, {
     largestUnit: 'minute',
   }).minutes
-
-// 例: 2026/11/17 12:50（3分前）
-export const formatLastRead = (
-  lastReadAt: string,
-  now: Temporal.PlainDateTime,
-) =>
-  `${formatDateTime(lastReadAt)}（${formatElapsed(getElapsedMinutes(lastReadAt, now))}）`
