@@ -199,3 +199,19 @@ dialog::backdrop {
 .button-row .button {
   flex: 1;
 }
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--color-border);
+}
