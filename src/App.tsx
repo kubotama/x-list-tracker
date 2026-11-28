@@ -188,22 +188,28 @@ const App = () => {
       </main>
 
       <Modal ref={dialogRef}>
-        <p>タブの編集</p>
+        <h2 className="modal-title">タブの編集</h2>
 
-        <div>
-          <label htmlFor="date-time">日時</label>
+        <div className="field">
+          <label className="field-label" htmlFor="date-time">
+            日時
+          </label>
           <input
             id="date-time"
+            className="text-input datetime-input"
             type="datetime-local"
             value={dateTime}
             onChange={(event) => setDateTime(event.target.value)}
           />
         </div>
 
-        <div>
-          <label htmlFor="edit-tab-name">名前</label>
+        <div className="field">
+          <label className="field-label" htmlFor="edit-tab-name">
+            名前
+          </label>
           <input
             id="edit-tab-name"
+            className="text-input"
             type="text"
             maxLength={MAX_TAB_NAME_LENGTH}
             value={editingTabName}
@@ -211,45 +217,55 @@ const App = () => {
           />
         </div>
 
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={!dateTime || !isEditingTabNameValid}
-        >
-          確定
-        </button>
-        <button
-          type="button"
-          onClick={handleRename}
-          disabled={!isEditingTabNameValid || !isEditingTabNameChanged}
-        >
-          名前のみ変更
-        </button>
-
-        <div style={{ marginTop: '32px' }}>
+        <div className="button-row">
           <button
             type="button"
-            onClick={handleDelete}
-            disabled={!canDeleteEditingTab}
+            className="button button-primary"
+            onClick={handleConfirm}
+            disabled={!dateTime || !isEditingTabNameValid}
           >
-            タブを削除
+            確定
+          </button>
+          <button
+            type="button"
+            className="button"
+            onClick={handleRename}
+            disabled={!isEditingTabNameValid || !isEditingTabNameChanged}
+          >
+            名前のみ変更
           </button>
         </div>
+
+        <button
+          type="button"
+          className="button button-danger"
+          onClick={handleDelete}
+          disabled={!canDeleteEditingTab}
+        >
+          タブを削除
+        </button>
       </Modal>
 
       <Modal ref={addDialogRef}>
-        <p>タブの追加</p>
+        <h2 className="modal-title">タブの追加</h2>
 
-        <label htmlFor="tab-name">名前</label>
-        <input
-          id="tab-name"
-          type="text"
-          maxLength={MAX_TAB_NAME_LENGTH}
-          value={tabName}
-          onChange={(event) => setTabName(event.target.value)}
-        />
+        <div className="field">
+          <label className="field-label" htmlFor="tab-name">
+            名前
+          </label>
+          <input
+            id="tab-name"
+            className="text-input"
+            type="text"
+            maxLength={MAX_TAB_NAME_LENGTH}
+            value={tabName}
+            onChange={(event) => setTabName(event.target.value)}
+          />
+        </div>
+
         <button
           type="button"
+          className="button button-primary"
           onClick={handleAdd}
           disabled={!isValidTabName(tabName)}
         >
