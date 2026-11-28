@@ -62,3 +62,58 @@ export const saveTabs = (tabs: Tab[]) => {
     // 保存に失敗しても、アプリは動作を続ける
   }
 }
+
+export type Settings = {
+  // 日時を選んだら、自動で確定するか
+  autoConfirm: boolean
+}
+
+export const defaultSettings: Settings = { autoConfirm: false }
+
+type StoredSettings = {
+  version: 1
+  autoConfirm: boolean
+}
+
+const SETTINGS_KEY = 'x-list-tracker-settings'
+const SETTINGS_VERSION = 1
+
+// 保存された文字列から設定を取り出す。不正な場合は既定値を返す
+export const parseStoredSettings = (json: string | null): Settings => {
+  if (json === null) {
+    return defaultSettings
+  }
+  try {
+    const data: unknown = JSON.parse(json)
+    if (typeof data !== 'object' || data === null) {
+      return defaultSettings
+    }
+    const { version, autoConfirm } = data as Record<string, unknown>
+    if (version !== SETTINGS_VERSION || typeof autoConfirm !== 'boolean') {
+      return defaultSettings
+    }
+    return { autoConfirm }
+  } catch {
+    return defaultSettings
+  }
+}
+
+export const loadSettings = (): Settings => {
+  try {
+    return parseStoredSettings(localStorage.getItem(SETTINGS_KEY))
+  } catch {
+    return defaultSettings
+  }
+}
+
+export const saveSettings = (settings: Settings) => {
+  try {
+    const data: StoredSettings = {
+      version: SETTINGS_VERSION,
+      autoConfirm: settings.autoConfirm,
+    }
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(data))
+  } catch {
+    // 保存に失敗しても、アプリは動作を続ける
+  }
+}

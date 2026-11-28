@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Modal } from './Modal'
 import { formatDateTime, formatElapsed, getElapsedMinutes } from './time'
-import { loadTabs, saveTabs } from './storage'
+import { loadSettings, loadTabs, saveSettings, saveTabs } from './storage'
 import {
   isDeletableTab,
   isValidTabName,
@@ -42,6 +42,7 @@ const useNow = () => {
 
 const App = () => {
   const [tabs, dispatch] = useReducer(tabsReducer, null, loadTabs)
+  const [settings, setSettings] = useState(loadSettings)
   const [now, refreshNow] = useNow()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [editingTabName, setEditingTabName] = useState('')
@@ -53,6 +54,10 @@ const App = () => {
   useEffect(() => {
     saveTabs(tabs)
   }, [tabs])
+
+  useEffect(() => {
+    saveSettings(settings)
+  }, [settings])
 
   const editingTab = tabs.find((tab) => tab.id === editingTabId)
   const isEditingTabNameValid = isValidTabName(editingTabName)
@@ -78,12 +83,12 @@ const App = () => {
     dialogRef.current?.close()
   }
 
-  // 日時と、変更されていればタブ名を、あわせて反映する
-  const handleConfirm = () => {
+  // 指定した日時と、変更されていればタブ名を、あわせて反映する
+  const confirmWith = (value: string) => {
     if (editingTabId === null || !isEditingTabNameValid) {
       return
     }
-    dispatch({ type: 'setLastReadAt', id: editingTabId, value: dateTime })
+    dispatch({ type: 'setLastReadAt', id: editingTabId, value })
     if (isEditingTabNameChanged) {
       dispatch({
         type: 'rename',
@@ -95,6 +100,22 @@ const App = () => {
     handleClose()
   }
 
+  const handleConfirm = () => {
+    confirmWith(dateTime)
+  }
+
+  // 日時が変更されたとき。設定がオンで、タブ名が変更されていなければ、確定する
+  const handleDateTimeChange = (value: string) => {
+    setDateTime(value)
+    if (
+      settings.autoConfirm &&
+      value !== '' &&
+      editingTab !== undefined &&
+      !isEditingTabNameChanged
+    ) {
+      confirmWith(value)
+    }
+  }
   // 日時は変更せず、タブ名のみを反映する
   const handleRename = () => {
     if (
@@ -199,8 +220,18 @@ const App = () => {
             className="text-input datetime-input"
             type="datetime-local"
             value={dateTime}
-            onChange={(event) => setDateTime(event.target.value)}
+            onChange={(event) => handleDateTimeChange(event.target.value)}
           />
+          <label className="checkbox-field">
+            <input
+              type="checkbox"
+              checked={settings.autoConfirm}
+              onChange={(event) =>
+                setSettings({ ...settings, autoConfirm: event.target.checked })
+              }
+            />
+            <span>日時を選んだら確定する（全タブ共通）</span>
+          </label>
         </div>
 
         <div className="field">

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { isTab, parseStoredTabs } from './storage'
+import {
+  defaultSettings,
+  isTab,
+  parseStoredSettings,
+  parseStoredTabs,
+} from './storage'
 
 const toJson = (data: unknown) => JSON.stringify(data)
 
@@ -92,5 +97,34 @@ describe('parseStoredTabs', () => {
     ])('%s', (_name, data) => {
       expect(parseStoredTabs(toJson(data))).toBeNull()
     })
+  })
+})
+
+describe('parseStoredSettings', () => {
+  it('autoConfirm が true の設定を返す', () => {
+    expect(
+      parseStoredSettings(toJson({ version: 1, autoConfirm: true })),
+    ).toEqual({ autoConfirm: true })
+  })
+
+  it('autoConfirm が false の設定を返す', () => {
+    expect(
+      parseStoredSettings(toJson({ version: 1, autoConfirm: false })),
+    ).toEqual({ autoConfirm: false })
+  })
+
+  const defaultCases: [string, string | null][] = [
+    ['入力が null', null],
+    ['JSON として不正な文字列', '{'],
+    ['数値', '123'],
+    ['null', 'null'],
+    ['version が 1 でない', toJson({ version: 2, autoConfirm: true })],
+    ['version がない', toJson({ autoConfirm: true })],
+    ['autoConfirm がない', toJson({ version: 1 })],
+    ['autoConfirm が真偽値でない', toJson({ version: 1, autoConfirm: 'true' })],
+  ]
+
+  it.each(defaultCases)('%s の場合は、既定値を返す', (_name, json) => {
+    expect(parseStoredSettings(json)).toEqual(defaultSettings)
   })
 })
